@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#07080d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+  <meta name="apple-mobile-web-app-title" content="Log Diario" />
+  <title>Log Diario</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap"
+    crossorigin />
+
+  <style>
+    /* ─── BASE ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg0: #07080d;
+      --bg1: #0d0e18;
+      --bg2: #12142a;
+      --bg3: #1e2136;
+      --bd:  #1e2136;
+      --bd2: #252840;
+      --t0:  #eceef8;
+      --t1:  #9ba3cc;
+      --t2:  #5a6080;
+      --amber:   #f59e0b;
+      --indigo:  #818cf8;
+      --emerald: #34d399;
+      --blue:    #60a5fa;
+      --red:     #f87171;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg0);
+      color: var(--t0);
+      font-family: 'DM Sans', sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bd2); border-radius: 2px; }
+
+    input, textarea, button, select { font-family: 'DM Sans', sans-serif; font-size: inherit; }
+    input:focus, textarea:focus { outline: none; box-shadow: 0 0 0 2px rgba(52,211,153,.2); }
+    button { cursor: pointer; }
+
+    /* ─── APP ─── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      max-width: 640px;
+      margin: 0 auto;
+      background: var(--bg0);
+      overflow: hidden;
+    }
+
+    /* ─── HEADER ─── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 16px;
+      background: var(--bg1);
+      border-bottom: 1px solid var(--bd);
+      flex-shrink: 0;
+      gap: 8px;
+    }
+    .logo { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--emerald);
+      box-shadow: 0 0 8px var(--emerald);
+      flex-shrink: 0;
+    }
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 800; letter-spacing: -.3px;
+    }
+    .logo-sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px; color: var(--t2); letter-spacing: 1.5px;
+    }
+    .hdr-right { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; }
+    .chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--t2);
+      background: var(--bg2); padding: 3px 7px;
+      border-radius: 5px; border: 1px solid var(--bd);
+      white-space: nowrap;
+    }
+    #clock-el {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px; color: var(--t2);
+      min-width: 64px; text-align: right;
+      display: none;
+    }
+    @media (min-width: 400px) { #clock-el { display: block; } }
+
+    /* ─── MAIN ─── */
+    main { flex: 1; position: relative; overflow: hidden; min-height: 0; }
+
+    section {
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      display: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    section.active { display: flex; flex-direction: column; }
+
+    /* ─── BOTTOM NAV ─── */
+    nav {
+      display: flex;
+      background: var(--bg1);
+      border-top: 1px solid var(--bd);
+      flex-shrink: 0;
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+    .nav-btn {
+      flex: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 3px; padding: 8px 4px 7px;
+      background: none; border: none;
+      color: var(--t2); font-size: 10px; font-weight: 500;
+      transition: color .15s;
+    }
+    .nav-btn .ni { font-size: 20px; line-height: 1; }
+    .nav-btn.active { color: var(--emerald); }
+
+    /* ─── ADD SECTION ─── */
+    .form-scroll {
+      flex: 1; padding: 16px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .form-group label {
+      display: block; font-size: 9px; font-weight: 700;
+      letter-spacing: 1.6px; color: var(--t2);
+      text-transform: uppercase; margin-bottom: 6px;
+    }
+    .cat-row { display: flex; gap: 6px; }
+    .cat-btn {
+      flex: 1; padding: 9px 4px; border-radius: 8px;
+      border: 1px solid var(--bd); background: transparent; color: var(--t2);
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: 10px; font-weight: 600; transition: all .13s;
+    }
+    .cat-btn .ci { font-size: 20px; line-height: 1; }
+    .fi {
+      width: 100%; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid var(--bd2); background: var(--bg2);
+      color: var(--t0); font-size: 14px; transition: border-color .15s;
+    }
+    .fi-ta { resize: vertical; min-height: 66px; line-height: 1.5; }
+    .add-btn {
+      width: 100%; padding: 12px; border-radius: 8px;
+      border: 1px solid var(--bd); background: transparent;
+      color: var(--t2); font-size: 14px; font-weight: 600; transition: all .15s;
+    }
+    .stats-panel { padding-top: 14px; border-top: 1px solid var(--bd); }
+    .sp-title {
+      font-size: 9px; font-weight: 700; letter-spacing: 1.5px;
+      color: var(--t2); text-transform: uppercase; margin-bottom: 10px;
+    }
+    .sp-row { display: flex; justify-content: space-between; align-items: center; font-size: 11px; margin-bottom: 4px; }
+    .sp-n { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--t2); }
+    .sp-bar { height: 3px; border-radius: 2px; background: var(--bd); overflow: hidden; margin-bottom: 9px; }
+    .sp-fill { height: 100%; border-radius: 2px; transition: width .5s ease; }
+
+    /* ─── HISTORY SECTION ─── */
+    .filter-bar {
+      display: flex; gap: 5px; padding: 8px 14px;
+      border-bottom: 1px solid var(--bd);
+      background: var(--bg1); flex-shrink: 0;
+      align-items: center; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .filter-bar::-webkit-scrollbar { display: none; }
+    .fl { font-size: 9px; font-weight: 700; letter-spacing: 1.4px; color: var(--t2); text-transform: uppercase; flex-shrink: 0; margin-right: 3px; }
+    .fb {
+      padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+      border: 1px solid var(--bd); background: transparent; color: var(--t2);
+      flex-shrink: 0; transition: all .13s; white-space: nowrap;
+    }
+    .fb[data-cat="all"].active     { border-color: var(--t1);     background: rgba(155,163,204,.12); color: var(--t1); }
+    .fb[data-cat="trabajo"].active  { border-color: var(--amber);  background: rgba(245,158,11,.12);  color: var(--amber); }
+    .fb[data-cat="idea"].active     { border-color: var(--indigo); background: rgba(129,140,248,.12); color: var(--indigo); }
+    .fb[data-cat="general"].active  { border-color: var(--emerald);background: rgba(52,211,153,.12);  color: var(--emerald); }
+
+    .history-list { flex: 1; overflow-y: auto; padding: 12px 14px; -webkit-overflow-scrolling: touch; }
+    .dh {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 9px; font-weight: 700; letter-spacing: .9px;
+      color: var(--t2); font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase; margin-bottom: 8px;
+    }
+    .dh.mt { margin-top: 16px; }
+    .ac {
+      display: flex; gap: 10px; padding: 10px 11px; border-radius: 8px;
+      border: 1px solid var(--bd); border-left-width: 3px;
+      background: var(--bg1); margin-bottom: 5px; align-items: flex-start;
+    }
+    .ai-icon { font-size: 13px; flex-shrink: 0; margin-top: 2px; line-height: 1; }
+    .ab { flex: 1; min-width: 0; }
+    .at { font-size: 13px; font-weight: 600; color: var(--t0); margin-bottom: 2px; word-break: break-word; }
+    .ad { font-size: 12px; color: var(--t1); margin-bottom: 4px; line-height: 1.45; word-break: break-word; }
+    .am { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+    .atm { font-size: 9px; color: var(--t2); font-family: 'JetBrains Mono', monospace; }
+    .acat { font-size: 9px; font-weight: 700; border-radius: 4px; padding: 1px 6px; }
+    .tag { font-size: 9px; color: var(--t2); background: var(--bg3); border-radius: 4px; padding: 1px 6px; }
+    .del-btn {
+      background: none; border: none; color: var(--t2);
+      font-size: 20px; padding: 1px 5px; border-radius: 4px; line-height: 1; flex-shrink: 0;
+      transition: all .13s;
+    }
+    .empty-state { text-align: center; padding: 50px 20px; color: var(--t2); }
+    .empty-icon { font-size: 36px; margin-bottom: 10px; }
+    .empty-title { font-size: 14px; color: var(--t1); margin-bottom: 4px; }
+    .empty-sub { font-size: 12px; }
+
+    /* ─── CHAT SECTION ─── */
+    .chat-msgs {
+      flex: 1; overflow-y: auto; padding: 14px;
+      display: flex; flex-direction: column; gap: 10px;
+      -webkit-overflow-scrolling: touch;
+    }
+    .msg { display: flex; }
+    .mu { justify-content: flex-end; }
+    .ma { justify-content: flex-start; }
+    .bu, .ba {
+      max-width: 82%; padding: 10px 14px;
+      font-size: 13px; line-height: 1.6; word-break: break-word;
+    }
+    .bu { border-radius: 12px 12px 3px 12px; background: #192040; border: 1px solid #2a3a6a; color: #bcc8f0; }
+    .ba { border-radius: 12px 12px 12px 3px; background: var(--bg1); border: 1px solid var(--bd); color: var(--t0); }
+    .chat-sugg {
+      display: flex; gap: 6px; flex-wrap: wrap;
+      padding: 0 14px 8px; flex-shrink: 0;
+    }
+    .sb {
+      font-size: 11px; color: var(--t2); background: var(--bg2);
+      border: 1px solid var(--bd2); border-radius: 6px; padding: 5px 10px;
+      transition: all .13s;
+    }
+    .chat-inp-row {
+      display: flex; gap: 8px; padding: 11px 14px;
+      border-top: 1px solid var(--bd); background: var(--bg1); flex-shrink: 0;
+    }
+    .chat-inp-row input {
+      flex: 1; padding: 10px 12px; border-radius: 8px;
+      border: 1px solid var(--bd2); background: var(--bg2); color: var(--t0); font-size: 14px;
+    }
+    .send-btn {
+      width: 44px; height: 44px; flex-shrink: 0; border-radius: 8px;
+      border: 1px solid var(--bd2); background: var(--bg2); color: var(--t1);
+      font-size: 18px; display: flex; align-items: center; justify-content: center;
+      transition: all .13s;
+    }
+
+    /* ─── SETTINGS SECTION ─── */
+    .settings-scroll {
+      flex: 1; overflow-y: auto; padding: 16px;
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .sg { padding: 16px; background: var(--bg1); border: 1px solid var(--bd); border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
+    .sl { font-size: 13px; font-weight: 600; color: var(--t0); }
+    .sd { font-size: 12px; color: var(--t2); line-height: 1.5; }
+    .stbtn {
+      padding: 10px 14px; border-radius: 7px;
+      border: 1px solid var(--bd2); background: transparent;
+      color: var(--t1); font-size: 13px; font-weight: 600; text-align: left; transition: all .13s;
+    }
+    .export-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .eb {
+      flex: 1; min-width: 80px; padding: 10px 12px; border-radius: 7px;
+      border: 1px solid var(--bd2); background: transparent; color: var(--t1);
+      font-size: 12px; font-weight: 500; text-align: center; transition: all .13s;
+    }
+    .danger {
+      padding: 10px 14px; border-radius: 7px; border: 1px solid #2a1515;
+      background: transparent; color: var(--red); font-size: 13px;
+      font-family: 'DM Sans', sans-serif; text-align: left; transition: all .13s;
+    }
+    .sf { text-align: center; font-size: 11px; color: var(--t2); font-family: 'JetBrains Mono', monospace; padding: 4px 0 8px; }
+
+    /* ─── INSTALL BANNER ─── */
+    #install-banner {
+      margin: 14px 14px 0;
+      padding: 12px 14px; border-radius: 9px;
+      background: rgba(52,211,153,.08); border: 1px solid rgba(52,211,153,.25);
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+    }
+    #install-banner span { font-size: 12px; color: var(--emerald); }
+    #install-banner button { font-size: 11px; font-weight: 600; color: var(--emerald); background: rgba(52,211,153,.15); border: 1px solid rgba(52,211,153,.3); border-radius: 6px; padding: 5px 10px; flex-shrink: 0; }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeIn  { from { opacity:0; transform:translateY(3px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slideIn { from { opacity:0; transform:translateX(-4px); } to { opacity:1; transform:translateX(0); } }
+    @keyframes blink   { 0%,100% { opacity:1; } 50% { opacity:.15; } }
+    .fade-in  { animation: fadeIn  .22s ease forwards; }
+    .slide-in { animation: slideIn .18s ease forwards; }
+    .blink    { animation: blink 1.3s ease-in-out infinite; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ═══ HEADER ═══ -->
+  <header>
+    <div class="logo">
+      <div class="dot"></div>
+      <span class="logo-text">LOG DIARIO</span>
+      <span class="logo-sub">DIEGO</span>
+    </div>
+    <div class="hdr-right">
+      <span class="chip" id="stat-today">hoy 0</span>
+      <span class="chip" id="stat-total">total 0</span>
+      <span id="clock-el"></span>
+    </div>
+  </header>
+
+  <!-- ═══ MAIN ═══ -->
+  <main>
+
+    <!-- ── ADD ── -->
+    <section id="sec-add">
+      <div class="form-scroll">
+        <div class="form-group">
+          <label>Categoría</label>
+          <div class="cat-row" id="cat-row"></div>
+        </div>
+        <div class="form-group">
+          <label>Título *</label>
+          <input id="inp-title" class="fi" type="text" placeholder="¿Qué estás haciendo?" autocomplete="off" />
+        </div>
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="inp-desc" class="fi fi-ta" placeholder="Detalles opcionales..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Tags</label>
+          <input id="inp-tags" class="fi" type="text" placeholder="urgent, cliente, sprint" autocomplete="off" />
+        </div>
+        <button id="btn-add" class="add-btn">+ Agregar actividad</button>
+        <div id="stats-panel" class="stats-panel"></div>
+      </div>
+    </section>
+
+    <!-- ── HISTORY ── -->
+    <section id="sec-history">
+      <div class="filter-bar" id="filter-bar">
+        <span class="fl">Filtrar:</span>
+        <button class="fb active" data-cat="all">Todos</button>
+        <button class="fb" data-cat="trabajo">⚡ Trabajo</button>
+        <button class="fb" data-cat="idea">💡 Idea</button>
+        <button class="fb" data-cat="general">📌 General</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+
+    <!-- ── CHAT ── -->
+    <section id="sec-chat">
+      <div id="chat-msgs" class="chat-msgs"></div>
+      <div id="chat-sugg" class="chat-sugg"></div>
+      <div class="chat-inp-row">
+        <input id="chat-inp" type="text" placeholder="Preguntame sobre tu historial…" autocomplete="off" />
+        <button id="btn-send" class="send-btn">→</button>
+      </div>
+    </section>
+
+    <!-- ── SETTINGS ── -->
+    <section id="sec-settings">
+      <div class="settings-scroll">
+
+        <div id="install-banner" style="display:none">
+          <span>📲 Instalá la app en tu escritorio</span>
+          <button id="btn-install">Instalar</button>
+        </div>
+
+        <div class="sg">
+          <div class="sl">🔑 API Key de Anthropic</div>
+          <div class="sd">Necesaria para el Asistente IA. Se guarda localmente en tu dispositivo y nunca sale de él, solo va a la API de Anthropic.</div>
+          <input id="inp-apikey" class="fi" type="password" placeholder="sk-ant-api03-…" />
+          <button id="btn-save-key" class="stbtn">Guardar clave</button>
+        </div>
+
+        <div class="sg">
+          <div class="sl">📤 Exportar historial</div>
+          <div class="export-row">
+            <button class="eb" data-fmt="json">📦 JSON</button>
+            <button class="eb" data-fmt="csv">📊 CSV</button>
+            <button class="eb" data-fmt="md">📝 Markdown</button>
+          </div>
+        </div>
+
+        <div class="sg">
+          <div class="sl">🗑️ Datos</div>
+          <button id="btn-clear" class="danger">Borrar todo el historial</button>
+        </div>
+
+        <div class="sg">
+          <div class="sl">📲 Instalar en iOS (Safari)</div>
+          <div class="sd">1. Abrí esta página en Safari<br>2. Tocá el botón Compartir (□↑)<br>3. Elegí "Agregar a pantalla de inicio"<br>4. Confirmá con "Agregar"</div>
+        </div>
+
+        <div class="sf">Log Diario v1.0 · Diego Alberto Requejo</div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ═══ BOTTOM NAV ═══ -->
+  <nav>
+    <button class="nav-btn active" data-tab="add">
+      <span class="ni">➕</span><span>Nueva</span>
+    </button>
+    <button class="nav-btn" data-tab="history">
+      <span class="ni">📋</span><span>Historial</span>
+    </button>
+    <button class="nav-btn" data-tab="chat">
+      <span class="ni">🤖</span><span>Asistente</span>
+    </button>
+    <button class="nav-btn" data-tab="settings">
+      <span class="ni">⚙️</span><span>Config</span>
+    </button>
+  </nav>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+const CATS = {
+  trabajo: { label: 'Trabajo', color: '#f59e0b', dim: 'rgba(245,158,11,0.15)', icon: '⚡' },
+  idea:    { label: 'Idea',    color: '#818cf8', dim: 'rgba(129,140,248,0.15)', icon: '💡' },
+  general: { label: 'General', color: '#34d399', dim: 'rgba(52,211,153,0.15)',  icon: '📌' },
+};
+const STORAGE_KEY = 'diego:log:v3';
+const APIKEY_KEY  = 'diego:log:apikey';
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let acts       = [];
+let selCat     = 'trabajo';
+let filterCat  = 'all';
+let currentTab = 'add';
+let chatMsgs   = [
+  { role: 'assistant', text: '¡Hola Diego! Soy tu asistente de log.\n\nPodés preguntarme:\n• "¿Qué hice hoy?"\n• "Resumime la semana"\n• "¿Cuántas ideas tengo?"\n• "¿En qué categoría trabajé más?"' }
+];
+let chatLoading = false;
+let apiKey      = '';
+let installEvt  = null;
+
+/* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+const $     = id  => document.getElementById(id);
+const toDateKey   = iso => iso.slice(0, 10);
+const toDateLabel = iso => new Date(iso).toLocaleDateString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+const toTime      = iso => new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+const cap         = s   => s.charAt(0).toUpperCase() + s.slice(1);
+const esc         = s   => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+function groupByDate(list) {
+  const map = new Map();
+  list.forEach(a => {
+    const k = toDateKey(a.timestamp);
+    if (!map.has(k)) map.set(k, { label: toDateLabel(a.timestamp), items: [] });
+    map.get(k).items.push(a);
+  });
+  return map;
+}
+
+/* ════════════════════════════════════════════
+   STORAGE
+════════════════════════════════════════════ */
+function loadData() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    acts   = d.acts || [];
+    apiKey = localStorage.getItem(APIKEY_KEY) || '';
+  } catch(_) {}
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ acts })); } catch(_) {}
+}
+
+/* ════════════════════════════════════════════
+   STATS
+════════════════════════════════════════════ */
+function updateHeaderStats() {
+  const todayKey   = toDateKey(new Date().toISOString());
+  const todayCount = acts.filter(a => toDateKey(a.timestamp) === todayKey).length;
+  $('stat-today').textContent = `hoy ${todayCount}`;
+  $('stat-total').textContent = `total ${acts.length}`;
+}
+
+function renderStatsPanel() {
+  const el = $('stats-panel');
+  if (!acts.length) { el.innerHTML = ''; return; }
+  let html = '<div class="sp-title">Distribución</div>';
+  Object.entries(CATS).forEach(([k, c]) => {
+    const n   = acts.filter(a => a.category === k).length;
+    const pct = Math.round((n / acts.length) * 100);
+    html += `
+      <div class="sp-row"><span style="color:${c.color}">${c.icon} ${c.label}</span><span class="sp-n">${n}</span></div>
+      <div class="sp-bar"><div class="sp-fill" style="width:${pct}%;background:${c.color}"></div></div>
+    `;
+  });
+  el.innerHTML = html;
+}
+
+/* ════════════════════════════════════════════
+   ADD ACTIVITY
+════════════════════════════════════════════ */
+function addAct() {
+  const title = $('inp-title').value.trim();
+  if (!title) { $('inp-title').focus(); return; }
+
+  const act = {
+    id: `${Date.now()}-${Math.random().toString(36).slice(2,6)}`,
+    timestamp: new Date().toISOString(),
+    category: selCat,
+    title,
+    description: $('inp-desc').value.trim(),
+    tags: $('inp-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+  };
+
+  acts.unshift(act);
+  saveData();
+
+  $('inp-title').value = '';
+  $('inp-desc').value  = '';
+  $('inp-tags').value  = '';
+
+  updateAddBtn();
+  updateHeaderStats();
+  renderStatsPanel();
+
+  // Flash feedback
+  const btn = $('btn-add');
+  btn.textContent = '✓ Agregada';
+  setTimeout(() => { btn.textContent = '+ Agregar actividad'; }, 1200);
+  $('inp-title').focus();
+}
+
+function updateAddBtn() {
+  const ready = !!$('inp-title').value.trim();
+  const btn   = $('btn-add');
+  btn.style.borderColor = ready ? 'var(--emerald)' : '';
+  btn.style.background  = ready ? 'rgba(52,211,153,.1)' : '';
+  btn.style.color       = ready ? 'var(--emerald)' : '';
+}
+
+/* ════════════════════════════════════════════
+   DELETE ACTIVITY
+════════════════════════════════════════════ */
+function delAct(id) {
+  const el = document.querySelector(`.ac[data-id="${id}"]`);
+  if (el) { el.style.opacity = '0'; el.style.transform = 'scale(.97)'; el.style.transition = 'all .18s'; }
+  setTimeout(() => {
+    acts = acts.filter(a => a.id !== id);
+    saveData();
+    renderHistory();
+    updateHeaderStats();
+    renderStatsPanel();
+  }, 180);
+}
+
+/* ════════════════════════════════════════════
+   RENDER HISTORY
+════════════════════════════════════════════ */
+function renderHistory() {
+  const el       = $('history-list');
+  const filtered = filterCat === 'all' ? acts : acts.filter(a => a.category === filterCat);
+
+  if (!filtered.length) {
+    el.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">📭</div>
+        <div class="empty-title">Sin actividades${filterCat !== 'all' ? ` de "${CATS[filterCat].label}"` : ''}</div>
+        <div class="empty-sub">Agregá la primera desde la tab "Nueva"</div>
+      </div>`;
+    return;
+  }
+
+  const grouped = groupByDate(filtered);
+  let html = '', i = 0;
+
+  grouped.forEach(({ label, items }) => {
+    html += `<div class="dh${i > 0 ? ' mt' : ''}"><span>${cap(label)}</span><span>${items.length} ${items.length === 1 ? 'entrada' : 'entradas'}</span></div>`;
+    items.forEach(a => {
+      const tagsHtml = a.tags.map(t => `<span class="tag">#${esc(t)}</span>`).join('');
+      const descHtml = a.description ? `<div class="ad">${esc(a.description)}</div>` : '';
+      html += `
+        <div class="ac slide-in" data-id="${a.id}" style="border-left-color:${CATS[a.category].color}">
+          <span class="ai-icon">${CATS[a.category].icon}</span>
+          <div class="ab">
+            <div class="at">${esc(a.title)}</div>
+            ${descHtml}
+            <div class="am">
+              <span class="atm">${toTime(a.timestamp)}</span>
+              <span class="acat" style="color:${CATS[a.category].color};background:${CATS[a.category].dim}">${CATS[a.category].label}</span>
+              ${tagsHtml}
+            </div>
+          </div>
+          <button class="del-btn" data-id="${a.id}" aria-label="Eliminar">×</button>
+        </div>`;
+    });
+    i++;
+  });
+
+  el.innerHTML = html;
+  el.querySelectorAll('.del-btn').forEach(btn =>
+    btn.addEventListener('click', e => { e.stopPropagation(); delAct(btn.dataset.id); })
+  );
+}
+
+/* ════════════════════════════════════════════
+   CHAT
+════════════════════════════════════════════ */
+function renderMsgs() {
+  const el = $('chat-msgs');
+  let html = '';
+  chatMsgs.forEach(m => {
+    const text = esc(m.text).replace(/\n/g, '<br>');
+    html += `<div class="msg ${m.role === 'user' ? 'mu' : 'ma'} fade-in"><div class="${m.role === 'user' ? 'bu' : 'ba'}">${text}</div></div>`;
+  });
+  if (chatLoading) {
+    html += `<div class="msg ma fade-in"><div class="ba"><span class="blink" style="color:#60a5fa;font-size:18px;letter-spacing:5px">●●●</span></div></div>`;
+  }
+  el.innerHTML = html;
+  el.scrollTop = el.scrollHeight;
+}
+
+function renderSuggestions() {
+  const el = $('chat-sugg');
+  if (chatMsgs.length > 2) { el.style.display = 'none'; return; }
+  const ss = ['¿Qué hice hoy?', 'Resumime la semana', '¿Cuántas ideas tengo?', '¿En qué trabajé más?'];
+  el.innerHTML = ss.map(s => `<button class="sb">${s}</button>`).join('');
+  el.style.display = 'flex';
+  el.querySelectorAll('.sb').forEach(btn => btn.addEventListener('click', () => sendChat(btn.textContent)));
+}
+
+async function sendChat(override) {
+  const inp  = $('chat-inp');
+  const text = (override ?? inp.value).trim();
+  if (!text || chatLoading) return;
+  inp.value = '';
+
+  chatMsgs.push({ role: 'user', text });
+  chatLoading = true;
+  renderMsgs();
+  renderSuggestions();
+
+  if (!apiKey) {
+    chatMsgs.push({ role: 'assistant', text: 'Para usar el Asistente configurá tu API Key de Anthropic en ⚙️ Config.' });
+    chatLoading = false;
+    renderMsgs();
+    return;
+  }
+
+  const ctx = acts.length
+    ? acts.map(a =>
+        `[${toDateKey(a.timestamp)} ${toTime(a.timestamp)}] [${CATS[a.category].label}] "${a.title}"` +
+        (a.description ? ` — ${a.description}` : '') +
+        (a.tags.length ? ` #${a.tags.join(' #')}` : '')
+      ).join('\n')
+    : 'Sin actividades registradas aún.';
+
+  const apiMsgs = chatMsgs
+    .slice(chatMsgs.findIndex(m => m.role === 'user'))
+    .map(m => ({ role: m.role, content: m.text }));
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1024,
+        system: `Sos el asistente personal de log diario de Diego, un AI Collaborator de Córdoba, Argentina. Respondés en español argentino, de forma concisa y directa. Identificás patrones, resumís días o semanas y respondés preguntas sobre el historial.
+
+HISTORIAL DE ACTIVIDADES (más reciente primero):
+${ctx}
+
+Fecha y hora actual: ${new Date().toLocaleString('es-AR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}`,
+        messages: apiMsgs,
+      }),
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    chatMsgs.push({ role: 'assistant', text: data.content?.find(c => c.type === 'text')?.text || 'Sin respuesta.' });
+  } catch(e) {
+    chatMsgs.push({ role: 'assistant', text: `Error: ${e.message || 'No se pudo conectar. Verificá tu API Key en ⚙️ Config.'}` });
+  }
+
+  chatLoading = false;
+  renderMsgs();
+}
+
+/* ════════════════════════════════════════════
+   EXPORT
+════════════════════════════════════════════ */
+function dlBlob(content, name, type) {
+  const url = URL.createObjectURL(new Blob([content], { type }));
+  Object.assign(document.createElement('a'), { href: url, download: name }).click();
+  setTimeout(() => URL.revokeObjectURL(url), 500);
+}
+
+function doExport(fmt) {
+  if (!acts.length) { alert('No hay actividades para exportar.'); return; }
+  const d = new Date().toISOString().slice(0, 10);
+  if (fmt === 'json') {
+    dlBlob(JSON.stringify(acts, null, 2), `log-${d}.json`, 'application/json');
+  } else if (fmt === 'csv') {
+    const rows = [['Fecha','Hora','Categoría','Título','Descripción','Tags']];
+    acts.forEach(a => rows.push([toDateKey(a.timestamp), toTime(a.timestamp), CATS[a.category].label, a.title, a.description, a.tags.join('; ')]));
+    dlBlob('\uFEFF' + rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n'), `log-${d}.csv`, 'text/csv;charset=utf-8');
+  } else {
+    const groups = groupByDate(acts);
+    const lines  = ['# Log Diario — Diego\n'];
+    groups.forEach(({ label, items }) => {
+      lines.push(`\n## ${cap(label)}\n`);
+      items.forEach(a => lines.push(
+        `- **[${CATS[a.category].label}]** \`${toTime(a.timestamp)}\` **${a.title}**` +
+        (a.description ? ` — ${a.description}` : '') +
+        (a.tags.length ? ` *(${a.tags.join(', ')})*` : '')
+      ));
+    });
+    dlBlob(lines.join('\n'), `log-${d}.md`, 'text/markdown');
+  }
+}
+
+/* ════════════════════════════════════════════
+   CATEGORY BUTTONS
+════════════════════════════════════════════ */
+function buildCatButtons() {
+  const row = $('cat-row');
+  row.innerHTML = Object.entries(CATS).map(([k, c]) =>
+    `<button class="cat-btn${k === selCat ? ' active' : ''}" data-cat="${k}" style="${k === selCat ? `border-color:${c.color};background:${c.dim};color:${c.color}` : ''}">
+      <span class="ci">${c.icon}</span><span>${c.label}</span>
+    </button>`
+  ).join('');
+  row.querySelectorAll('.cat-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selCat = btn.dataset.cat;
+      row.querySelectorAll('.cat-btn').forEach(b => {
+        const c = CATS[b.dataset.cat];
+        const active = b.dataset.cat === selCat;
+        b.style.borderColor = active ? c.color : '';
+        b.style.background  = active ? c.dim   : '';
+        b.style.color       = active ? c.color : '';
+      });
+    });
+  });
+}
+
+/* ════════════════════════════════════════════
+   NAVIGATION
+════════════════════════════════════════════ */
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  $(`sec-${tab}`).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
+  if (tab === 'history') renderHistory();
+  if (tab === 'chat')    { renderMsgs(); renderSuggestions(); }
+  if (tab === 'add')     { renderStatsPanel(); $('inp-title').focus(); }
+}
+
+/* ════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════ */
+function startClock() {
+  const el   = $('clock-el');
+  const tick = () => el.textContent = new Date().toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  tick(); setInterval(tick, 1000);
+}
+
+/* ════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════ */
+function init() {
+  loadData();
+  startClock();
+  buildCatButtons();
+  updateHeaderStats();
+  renderStatsPanel();
+  switchTab('add');
+
+  // Add activity
+  $('inp-title').addEventListener('input', updateAddBtn);
+  $('btn-add').addEventListener('click', addAct);
+  $('inp-title').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) addAct(); });
+  $('inp-tags').addEventListener('keydown',  e => { if (e.key === 'Enter') addAct(); });
+
+  // Filter buttons
+  document.querySelectorAll('.fb').forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterCat = (btn.dataset.cat === filterCat && filterCat !== 'all') ? 'all' : btn.dataset.cat;
+      document.querySelectorAll('.fb').forEach(b => b.classList.toggle('active', b.dataset.cat === filterCat));
+      renderHistory();
+    });
+  });
+
+  // Nav
+  document.querySelectorAll('.nav-btn').forEach(btn =>
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab))
+  );
+
+  // Chat
+  $('btn-send').addEventListener('click', () => sendChat());
+  $('chat-inp').addEventListener('keydown', e => { if (e.key === 'Enter') sendChat(); });
+
+  // Settings — API Key
+  $('inp-apikey').value = apiKey;
+  $('btn-save-key').addEventListener('click', () => {
+    apiKey = $('inp-apikey').value.trim();
+    localStorage.setItem(APIKEY_KEY, apiKey);
+    const btn = $('btn-save-key');
+    btn.textContent = '✓ Clave guardada';
+    setTimeout(() => btn.textContent = 'Guardar clave', 2000);
+  });
+
+  // Settings — Export
+  document.querySelectorAll('.eb').forEach(btn =>
+    btn.addEventListener('click', () => doExport(btn.dataset.fmt))
+  );
+
+  // Settings — Clear
+  $('btn-clear').addEventListener('click', () => {
+    if (confirm('¿Seguro que querés borrar todo el historial? No se puede deshacer.')) {
+      acts = [];
+      saveData();
+      updateHeaderStats();
+      renderStatsPanel();
+      renderHistory();
+      alert('Historial borrado.');
+    }
+  });
+
+  // PWA install prompt (Android/Chrome)
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    installEvt = e;
+    const banner = $('install-banner');
+    if (banner) banner.style.display = 'flex';
+  });
+
+  $('btn-install') && $('btn-install').addEventListener('click', async () => {
+    if (!installEvt) return;
+    installEvt.prompt();
+    const { outcome } = await installEvt.userChoice;
+    if (outcome === 'accepted') {
+      const banner = $('install-banner');
+      if (banner) banner.style.display = 'none';
+    }
+    installEvt = null;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', init);
+
+/* ════════════════════════════════════════════
+   SERVICE WORKER REGISTRATION
+════════════════════════════════════════════ */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () =>
+    navigator.serviceWorker.register('./sw.js').catch(() => {})
+  );
+}
+</script>
+</body>
+</html>

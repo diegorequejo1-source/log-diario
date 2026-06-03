@@ -1,0 +1,41 @@
+{
+  "name": "Log Diario — Diego",
+  "short_name": "Log",
+  "description": "Agente personal de actividades diarias",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#07080d",
+  "theme_color": "#07080d",
+  "orientation": "portrait-primary",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "shortcuts": [
+    {
+      "name": "Nueva actividad",
+      "short_name": "Nueva",
+      "url": "./?tab=add",
+      "description": "Agregar una actividad rápida"
+    },
+    {
+      "name": "Historial",
+      "short_name": "Historial",
+      "url": "./?tab=history",
+      "description": "Ver el historial de actividades"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background -->
+  <rect width="512" height="512" rx="96" fill="#0d0e18"/>
+
+  <!-- Notebook body -->
+  <rect x="128" y="96" width="256" height="296" rx="18" fill="none" stroke="#1e2136" stroke-width="2"/>
+  <rect x="128" y="96" width="256" height="296" rx="18" fill="#07080d"/>
+
+  <!-- Left binding bar -->
+  <rect x="128" y="96" width="40" height="296" rx="0" fill="#12142a"/>
+  <rect x="128" y="96" width="40" height="296" rx="0" fill="none" stroke="#1e2136" stroke-width="1.5"/>
+
+  <!-- Binding dots -->
+  <circle cx="148" cy="150" r="7" fill="#07080d" stroke="#252840" stroke-width="2"/>
+  <circle cx="148" cy="200" r="7" fill="#07080d" stroke="#252840" stroke-width="2"/>
+  <circle cx="148" cy="250" r="7" fill="#07080d" stroke="#252840" stroke-width="2"/>
+  <circle cx="148" cy="300" r="7" fill="#07080d" stroke="#252840" stroke-width="2"/>
+  <circle cx="148" cy="350" r="7" fill="#07080d" stroke="#252840" stroke-width="2"/>
+
+  <!-- Text lines - emerald accent line -->
+  <rect x="186" y="158" width="162" height="11" rx="5.5" fill="#34d399"/>
+
+  <!-- Text lines - dimmed -->
+  <rect x="186" y="192" width="148" height="9" rx="4.5" fill="#252840"/>
+  <rect x="186" y="218" width="120" height="9" rx="4.5" fill="#252840"/>
+  <rect x="186" y="244" width="140" height="9" rx="4.5" fill="#252840"/>
+  <rect x="186" y="270" width="100" height="9" rx="4.5" fill="#252840"/>
+
+  <!-- Divider line -->
+  <rect x="168" y="300" width="180" height="1.5" rx="1" fill="#1e2136"/>
+
+  <!-- Small colored category dots -->
+  <circle cx="192" cy="325" r="6" fill="#f59e0b"/>
+  <rect x="204" y="320" width="60" height="9" rx="4.5" fill="#252840"/>
+
+  <circle cx="192" cy="350" r="6" fill="#818cf8"/>
+  <rect x="204" y="345" width="44" height="9" rx="4.5" fill="#252840"/>
+
+  <!-- Green glowing pulse dot (activity indicator) -->
+  <circle cx="364" cy="364" r="38" fill="#07080d"/>
+  <circle cx="364" cy="364" r="24" fill="none" stroke="#34d399" stroke-width="11" opacity="0.3"/>
+  <circle cx="364" cy="364" r="14" fill="#34d399"/>
+
+  <!-- Outer ring of notebook -->
+  <rect x="128" y="96" width="256" height="296" rx="18" fill="none" stroke="#252840" stroke-width="3"/>
+</svg>
